@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ott-ticket-intelligence"
+version = "0.1.0"
+description = "Reusable components for OTT ticket intelligence in Microsoft Fabric"
+requires-python = ">=3.11"
+
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "sentence-transformers",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
