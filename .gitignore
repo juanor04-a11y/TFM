@@ -1,0 +1,12 @@
+# Secrets
+.env
+.env.*
+
+# PyCharm
+.idea/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
