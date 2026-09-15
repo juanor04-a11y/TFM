@@ -1,70 +1,196 @@
 # TFM — OTT Ticket Intelligence
 
-Proyecto de TFM orientado a Ingeniería de Datos para agrupar tickets operativos OTT mediante Microsoft Fabric, embeddings semánticos e IA Generativa.
+Proyecto de Trabajo Fin de Máster orientado al diseño e implementación de una arquitectura **Lakehouse en Microsoft Fabric** para la agrupación inteligente de tickets operativos OTT mediante técnicas de representación semántica, clustering e IA Generativa.
 
-## Estructura inicial
+El objetivo principal es integrar tickets procedentes de diferentes mecanismos de ingesta, transformarlos siguiendo una arquitectura **Medallion (Bronze, Silver y Gold)**, generar embeddings semánticos y agrupar tickets potencialmente relacionados para facilitar su análisis operacional.
+
+La solución combina ingesta batch y streaming, arquitectura Lakehouse/Medallion, procesamiento PySpark, embeddings con `all-MiniLM-L6-v2`, clustering mediante DBSCAN, IA Generativa y explotación de resultados en Power BI.
+
+## Estructura del repositorio
 
 ```text
-tfm_ott_ticket_intelligence/
-├── src/
-│   └── generate_synthetic_tickets.py
+TFM/
+│
 ├── data/
-│   ├── raw/
-│   └── ground_truth/
-├── requirements.txt
+│   ├── ground_truth/
+│   └── raw/
+│
+├── src/
+│   ├── ai_model/
+│   ├── batch_data_generator/
+│   ├── notebooks_Fabric/
+│   ├── ott_ticket_intelligence/
+│   └── streaming_data_producer/
+│
 ├── .gitignore
+├── docker-compose.yml
+├── pyproject.toml
+├── requirements.txt
 └── README.md
 ```
 
-## Crear entorno local
+### `data/`
 
-### Windows PowerShell
+Contiene los datos utilizados durante el desarrollo y evaluación.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
+- `raw/`: datos de entrada.
+- `ground_truth/`: información de referencia para evaluar la calidad del clustering.
 
-## Generar dataset sintético
+El *ground truth* se utiliza únicamente para evaluación y nunca como entrada para generar embeddings o decidir clusters.
 
-```powershell
-python src/generate_synthetic_tickets.py
-```
+### `src/ai_model/`
 
-Por defecto genera:
+Código relacionado con los componentes de IA utilizados por la solución, especialmente la generación de resúmenes y la interpretación de grupos.
 
-- 1.000 tickets.
-- 50 incidentes subyacentes.
-- Semilla aleatoria 42.
-- Aproximadamente 10 % de tickets aislados.
-- Aproximadamente 5 % de duplicados intencionados.
+### `src/batch_data_generator/`
 
-Los archivos se generan en:
+Código utilizado para generar o preparar los tickets procesados mediante el flujo batch.
+
+### `src/streaming_data_producer/`
+
+Productor de eventos utilizado para simular la llegada de tickets en tiempo cercano al real mediante Kafka / Confluent Cloud.
 
 ```text
-data/raw/synthetic_ott_tickets.csv
-data/ground_truth/incident_ground_truth.csv
+Ticket
+  ↓
+Kafka / Confluent Cloud
+  ↓
+Microsoft Fabric Eventstream
+  ↓
+Bronze.KafkaTickets
 ```
 
-También se pueden cambiar los parámetros:
+### `src/notebooks_Fabric/`
 
-```powershell
-python src/generate_synthetic_tickets.py --tickets 2000 --incidents 80 --seed 42
+Contiene los notebooks de Microsoft Fabric utilizados para la ingesta, transformación, generación de embeddings, clustering, agregación de grupos, generación de resúmenes y evaluación experimental.
+
+La lógica experimental se mantiene separada del flujo operacional para mejorar la mantenibilidad, reproducibilidad y eficiencia.
+
+### `src/ott_ticket_intelligence/`
+
+Paquete Python reutilizable con parte de la lógica del proyecto. Su objetivo es desacoplar el procesamiento de los notebooks y facilitar reutilización, pruebas, mantenimiento y distribución mediante un paquete `.whl`.
+
+Entre los componentes principales se incluyen:
+
+```text
+TicketEmbedder
+TicketClusterer
+IncidentSummarizer
 ```
 
-## Ground truth
+## Arquitectura Medallion
 
-`incident_id` representa el incidente real al que pertenece un ticket y se utilizará únicamente para evaluar el resultado del modelo. No debe utilizarse como variable durante el clustering.
+### Bronze
 
-## Próximos pasos
+- `Bronze.Tickets`: tickets procedentes del flujo batch.
+- `Bronze.KafkaTickets`: tickets recibidos mediante streaming.
 
-1. Crear workspace y Lakehouse en Microsoft Fabric.
-2. Ingerir `synthetic_ott_tickets.csv` en la capa Bronze.
-3. Crear notebook Bronze → Silver.
-4. Generar embeddings.
-5. Comparar TF-IDF frente a embeddings.
-6. Aplicar clustering.
-7. Evaluar los grupos contra `incident_id`.
-8. Publicar resultados en Power BI.
+### Silver
+
+- `Silver.Tickets`: tickets integrados, limpiados, normalizados y deduplicados.
+- `Silver.TicketEmbeddings`: representación vectorial de los tickets.
+
+Los embeddings se generan utilizando `all-MiniLM-L6-v2`, que produce vectores de 384 dimensiones.
+
+### Gold
+
+- `Gold.TicketClusters`: asignación de cada ticket a un cluster.
+- `Gold.ClusteredTickets`: tickets enriquecidos con la información de clustering.
+- `Gold.IncidentGroups`: agregación de tickets por `cluster_id`.
+- `Gold.IncidentSummaries`: resúmenes generados mediante IA Generativa.
+
+Durante la fase experimental pueden existir tablas adicionales para métricas y evaluación.
+
+## Clustering
+
+El agrupamiento se realiza mediante **DBSCAN** utilizando distancia coseno sobre los embeddings.
+
+Configuración utilizada en el prototipo:
+
+```text
+eps = 0.25
+min_samples = 3
+metric = cosine
+```
+
+Estos parámetros pueden enviarse desde Microsoft Fabric Pipeline.
+
+El campo `incident_id` no participa en el clustering. Se utiliza únicamente como referencia para comparar los clusters generados con los incidentes conocidos del dataset sintético.
+
+## Evaluación
+
+La calidad del clustering se analiza mediante:
+
+- Adjusted Rand Index (ARI)
+- Normalized Mutual Information (NMI)
+- Pairwise Precision
+- Pairwise Recall
+- Pairwise F1
+- análisis de grupos mezclados
+
+La evaluación de embeddings incluye además análisis de similitud coseno, distribución de similitudes y thresholds utilizados únicamente con fines descriptivos.
+
+## IA Generativa
+
+Los tickets pertenecientes a un mismo cluster se agregan en `Gold.IncidentGroups`.
+
+Estos grupos se utilizan como entrada para generar información estructurada como:
+
+- título;
+- resumen;
+- posible problema;
+- ámbito afectado;
+- acción recomendada;
+- advertencia cuando el grupo parece heterogéneo.
+
+Los resultados se almacenan en `Gold.IncidentSummaries`.
+
+La IA Generativa actúa como una capa de síntesis posterior al clustering y no interviene en la creación de los clusters.
+
+## Requisitos
+
+Se recomienda utilizar Python 3.11 o superior.
+
+Instalación:
+
+```bash
+python -m venv .venv
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+## Microsoft Fabric
+
+El pipeline operacional ejecuta de forma secuencial:
+
+```text
+Ingesta
+  ↓
+Bronze
+  ↓
+Silver
+  ↓
+Embeddings
+  ↓
+Clustering
+  ↓
+Incident Groups
+  ↓
+IA Generativa
+```
+
+Los principales parámetros, como `eps`, `min_samples`, el modelo de embeddings o el número máximo de tickets enviados al modelo generativo, pueden centralizarse en el pipeline y transmitirse a los notebooks.
+
+## Visualización
+
+Los resultados de la capa Gold se consumen desde **Power BI Desktop** mediante el **SQL Analytics Endpoint de Microsoft Fabric**.
+
+El informe permite analizar grupos detectados, tamaño y composición de clusters, métricas, resúmenes generados y detalle de tickets.
+
+## Objetivo del proyecto
+
+El proyecto demuestra cómo una arquitectura moderna de Ingeniería de Datos puede integrar:
+
+**Lakehouse + Streaming + Embeddings + Clustering + IA Generativa + BI**
+
+Y de esta manera mejorar el análisis y consolidación de tickets operativos en un contexto OTT.
