@@ -1,4 +1,5 @@
-# TFM — OTT Ticket Intelligence
+# Diseño e implementación de una arquitectura Lakehouse para la para la correlación inteligente de tickets de incidencias de una plataforma OTT 
+
 
 Proyecto de Trabajo Fin de Máster orientado al diseño e implementación de una arquitectura **Lakehouse en Microsoft Fabric** para la agrupación inteligente de tickets operativos OTT mediante técnicas de representación semántica, clustering e IA Generativa.
 
@@ -14,7 +15,8 @@ TFM/
 ├── data/
 │   ├── ground_truth/
 │   └── raw/
-│
+├── PowerBI
+│   └── TFM_PowerBI.pbix
 ├── src/
 │   ├── ai_model/
 │   ├── batch_data_generator/
@@ -37,6 +39,12 @@ Contiene los datos utilizados durante el desarrollo y evaluación.
 - `ground_truth/`: información de referencia para evaluar la calidad del clustering.
 
 El *ground truth* se utiliza únicamente para evaluación y nunca como entrada para generar embeddings o decidir clusters.
+
+### `PowerBI/`
+Contiene el fichero para Power BI, con las vistas utilizadas obtenidas de las tablas en Gold. Las vistas son: 
+- OTT Incident Overview: Vista general de los tickets, resumen de los incidentes, información contenida en los clusters etc... Se puede seleccionar el cluster y el servicio de OTT (VOD, EPG, Logic, etc...) para filtrar tickets
+- Clustering Evaluation: Contiene las metricas utilizadas para obtener el mejor valor de eps y min_samples y así crear los clusters
+- Incident Detail: Contiene el resumen de cada cluster generado con un modelo de IA generativa y una vista de los tickets que tiene cada cluster. De esta manera podemos comprobar si el modelo realmente funciona o no.
 
 ### `src/ai_model/`
 
