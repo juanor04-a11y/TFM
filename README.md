@@ -85,34 +85,17 @@ Los principales componentes son:
 * **TicketClusterer**: Encapsula la ejecución operacional del algoritmo DBSCAN sobre los embeddings.
 * **IncidentSummarizer**: Encapsula la interacción con el modelo de IA Generativa utilizado para interpretar los grupos detectados.
 * **validators.py** contiene funciones de validación reutilizables para comprobar la calidad mínima de los datos antes de seguir con el pipeline.
-# Tests unitarios
+
+## Tests unitarios
 
 Este directorio contiene tests para los principales componentes del paquete `ott_ticket_intelligence`.
 
-## Cobertura
+### Cobertura
 
 - `TicketClusterer`: validación de parámetros, entradas, labels y estadísticas.
 - `TicketEmbedder`: carga diferida, dimensionalidad, forma y normalización de embeddings.
 - `IncidentSummarizer`: límite de contexto, reproducibilidad, validación JSON y estructura de salida.
 - `validators.py`: datasets vacíos, duplicados y nulos.
-
-## Ejecutar
-
-Desde la raíz del proyecto:
-
-```bash
-python -m pip install pytest
-pytest -v
-```
-
-Si quieres ejecutar también los tests Spark:
-
-```bash
-python -m pip install pyspark
-pytest -v
-```
-
-Si `pyspark` no está instalado, `test_validators.py` se omitirá automáticamente.
 
 ## Arquitectura Medallion
 
