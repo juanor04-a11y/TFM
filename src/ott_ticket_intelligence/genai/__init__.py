@@ -1,3 +1,3 @@
-from .summarizer import IncidentSummarizer
+from .IncidentSummarizer import IncidentSummarizer
 
 __all__ = ["IncidentSummarizer"]

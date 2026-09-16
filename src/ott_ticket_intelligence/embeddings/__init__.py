@@ -1,3 +1,3 @@
-from .embedder import TicketEmbedder
+from .TicketEmbedder import TicketEmbedder
 
 __all__ = ["TicketEmbedder"]

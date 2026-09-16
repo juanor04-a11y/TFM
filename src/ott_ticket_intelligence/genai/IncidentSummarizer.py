@@ -7,11 +7,9 @@ from typing import Any
 
 class IncidentSummarizer:
     """
-    Generates structured operational summaries for detected
-    ticket clusters using an OpenAI-compatible client.
+    Genera resúmenes operacionales estructurados para los grupos de tickets detectados, utilizando un cliente compatible con OpenAI.
 
-    The class does not perform clustering. It only interprets
-    groups produced by the upstream pipeline.
+    La clase no realiza la agrupación. Solo interpreta los grupos generados por la actividad anterior en el pipeline.
     """
 
     EXPECTED_FIELDS = [
@@ -79,10 +77,9 @@ Return ONLY valid JSON with exactly this structure:
         cluster_id: int,
     ) -> list[str]:
         """
-        Select a deterministic random sample of ticket texts.
+        Selecciona un sample aleatorio y determinista de los textos.
 
-        A cluster-specific seed ensures reproducibility while avoiding
-        selection of exactly the same sequence for every cluster.
+        Una semilla específica para cada clúster garantiza la reproducibilidad y evita seleccionar exactamente la misma secuencia para cada clúster.
         """
 
         if ticket_texts is None:
@@ -161,7 +158,7 @@ Tickets analyzed:
         ticket_texts,
     ) -> dict:
         """
-        Generate one structured incident-group summary.
+        Generar un resumen estructurado del grupo de incidentes.
         """
 
         sampled_tickets = self.sample_tickets(

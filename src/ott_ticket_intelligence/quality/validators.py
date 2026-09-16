@@ -1,6 +1,9 @@
 from pyspark.sql import functions as F
 
-
+"""
+Esta clase contiene funciones reutilizables de control de calidad para validar los DataFrames procesados por el pipeline.
+Permite comprobar que los datasets no estén vacíos, que las claves principales sean únicas y que las columnas críticas no contengan valores nulos
+"""
 def assert_non_empty(
     df,
     dataset_name: str,

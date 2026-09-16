@@ -8,10 +8,9 @@ from sentence_transformers import SentenceTransformer
 
 class TicketEmbedder:
     """
-    Generates normalized semantic embeddings for ticket texts.
+    Genera embeddings semánticas normalizadas para los textos de los tickets.
 
-    The class encapsulates model loading and batch inference so that
-    Fabric notebooks only need to provide input texts and configuration.
+    La clase encapsula la carga del modelo y la inferencia por lotes, por lo que los cuadernos de Fabric solo necesitan proporcionar los textos de entrada y la configuración.
     """
 
     def __init__(
@@ -31,9 +30,7 @@ class TicketEmbedder:
     @property
     def model(self) -> SentenceTransformer:
         """
-        Lazy-load the SentenceTransformer model.
-
-        The model is loaded only when first required.
+        Lazy-load del modelo SentenceTransformer El modelo se carga solo cuando se necesita por primera vez.
         """
 
         if self._model is None:
@@ -47,11 +44,11 @@ class TicketEmbedder:
     @property
     def embedding_dimension(self) -> int:
         """
-        Return the dimensionality of the configured embedding model.
+        Devuelve la dimensionalidad del modelo configurado.
         """
 
         return int(
-            self.model.get_sentence_embedding_dimension()
+            self.model.get_embedding_dimension()
         )
 
     def encode(
@@ -59,7 +56,7 @@ class TicketEmbedder:
         texts: Iterable[str],
     ) -> np.ndarray:
         """
-        Generate normalized embeddings for a collection of texts.
+        Genera embeddings normalizados para una colección de textos.
         """
 
         texts = list(texts)

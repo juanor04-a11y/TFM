@@ -7,11 +7,11 @@ from sklearn.cluster import DBSCAN
 
 class TicketClusterer:
     """
-    Applies DBSCAN clustering to normalized ticket embeddings.
+    Aplica la agrupación DBSCAN a las incrustaciones de tickets normalizadas.
 
-    The class contains only operational clustering logic.
-    Experimental grid search and ground-truth evaluation remain
-    outside the operational pipeline.
+    La clase contiene únicamente la lógica operativa de agrupación.
+
+    La búsqueda en cuadrícula experimental y la evaluación de la verdad fundamental permanecen fuera del proceso operativo.
     """
 
     def __init__(
@@ -39,7 +39,7 @@ class TicketClusterer:
     @property
     def model(self) -> DBSCAN:
         """
-        Create DBSCAN lazily using the configured parameters.
+        Usamos DBSCAN de forma diferida utilizando los parámetros configurados.
         """
 
         if self._model is None:
@@ -56,7 +56,7 @@ class TicketClusterer:
         embeddings: np.ndarray,
     ) -> np.ndarray:
         """
-        Assign a cluster identifier to every embedding.
+        Asignamos un identificador de clúster a cada incrustación.
         """
 
         embeddings = np.asarray(
@@ -85,7 +85,7 @@ class TicketClusterer:
         labels: np.ndarray,
     ) -> dict:
         """
-        Return basic operational clustering statistics.
+        Devuelve estadísticas básicas de agrupación operativa.
         """
 
         labels = np.asarray(labels)

@@ -15,12 +15,12 @@ TFM/
 ├── data/
 │   ├── ground_truth/
 │   └── raw/
+├── notebooks_Fabric/
 ├── PowerBI
 │   └── TFM_PowerBI.pbix
 ├── src/
 │   ├── ai_model/
 │   ├── batch_data_generator/
-│   ├── notebooks_Fabric/
 │   ├── ott_ticket_intelligence/
 │   └── streaming_data_producer/
 │
@@ -39,6 +39,12 @@ Contiene los datos utilizados durante el desarrollo y evaluación.
 - `ground_truth/`: información de referencia para evaluar la calidad del clustering.
 
 El *ground truth* se utiliza únicamente para evaluación y nunca como entrada para generar embeddings o decidir clusters.
+
+### `notebooks_Fabric/`
+
+Contiene los notebooks de Microsoft Fabric utilizados para la ingesta, transformación, generación de embeddings, clustering, agregación de grupos, generación de resúmenes y evaluación experimental.
+
+La lógica experimental se mantiene separada del flujo operacional para mejorar la mantenibilidad, reproducibilidad y eficiencia. Estos notebooks usados durante las pruebas del proyecto se encuentran en `notebooks_Fabric/experiments`
 
 ### `PowerBI/`
 Contiene el fichero para Power BI, con las vistas utilizadas obtenidas de las tablas en Gold. Las vistas son: 
@@ -68,23 +74,45 @@ Microsoft Fabric Eventstream
 Bronze.KafkaTickets
 ```
 
-### `src/notebooks_Fabric/`
-
-Contiene los notebooks de Microsoft Fabric utilizados para la ingesta, transformación, generación de embeddings, clustering, agregación de grupos, generación de resúmenes y evaluación experimental.
-
-La lógica experimental se mantiene separada del flujo operacional para mejorar la mantenibilidad, reproducibilidad y eficiencia.
-
 ### `src/ott_ticket_intelligence/`
 
-Paquete Python reutilizable con parte de la lógica del proyecto. Su objetivo es desacoplar el procesamiento de los notebooks y facilitar reutilización, pruebas, mantenimiento y distribución mediante un paquete `.whl`.
+Paquete Python reutilizable que encapsula parte de la lógica principal del proyecto fuera de los notebooks de Microsoft Fabric. Su objetivo es desacoplar la lógica de negocio de la capa de orquestación, haciendo el código más reutilizable, mantenible y fácil de probar.
+Esta separación permite que los notebooks se centren principalmente en cargar datos, recibir parámetros del pipeline, invocar los componentes del paquete y persistir los resultados.
+El paquete se distribuye como un archivo .whl, que puede instalarse como librería personalizada en un Environment de Microsoft Fabric.
 
-Entre los componentes principales se incluyen:
+Los principales componentes son:
+* **TicketEmbedder**: Encapsula la generación de embeddings semánticos a partir del texto de los tickets.
+* **TicketClusterer**: Encapsula la ejecución operacional del algoritmo DBSCAN sobre los embeddings.
+* **IncidentSummarizer**: Encapsula la interacción con el modelo de IA Generativa utilizado para interpretar los grupos detectados.
+* **validators.py** contiene funciones de validación reutilizables para comprobar la calidad mínima de los datos antes de seguir con el pipeline.
+# Tests unitarios
 
-```text
-TicketEmbedder
-TicketClusterer
-IncidentSummarizer
+Este directorio contiene tests para los principales componentes del paquete `ott_ticket_intelligence`.
+
+## Cobertura
+
+- `TicketClusterer`: validación de parámetros, entradas, labels y estadísticas.
+- `TicketEmbedder`: carga diferida, dimensionalidad, forma y normalización de embeddings.
+- `IncidentSummarizer`: límite de contexto, reproducibilidad, validación JSON y estructura de salida.
+- `validators.py`: datasets vacíos, duplicados y nulos.
+
+## Ejecutar
+
+Desde la raíz del proyecto:
+
+```bash
+python -m pip install pytest
+pytest -v
 ```
+
+Si quieres ejecutar también los tests Spark:
+
+```bash
+python -m pip install pyspark
+pytest -v
+```
+
+Si `pyspark` no está instalado, `test_validators.py` se omitirá automáticamente.
 
 ## Arquitectura Medallion
 
@@ -144,12 +172,12 @@ Los tickets pertenecientes a un mismo cluster se agregan en `Gold.IncidentGroups
 
 Estos grupos se utilizan como entrada para generar información estructurada como:
 
-- título;
-- resumen;
-- posible problema;
-- ámbito afectado;
-- acción recomendada;
-- advertencia cuando el grupo parece heterogéneo.
+- título
+- resumen
+- posible problema
+- ámbito afectado
+- acción recomendada
+- advertencia cuando el grupo parece heterogéneo (columna warning).
 
 Los resultados se almacenan en `Gold.IncidentSummaries`.
 
