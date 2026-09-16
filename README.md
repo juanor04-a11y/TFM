@@ -43,7 +43,6 @@ El *ground truth* se utiliza únicamente para evaluación y nunca como entrada p
 ### `notebooks_Fabric/`
 
 Contiene los notebooks de Microsoft Fabric utilizados para la ingesta, transformación, generación de embeddings, clustering, agregación de grupos, generación de resúmenes y evaluación experimental.
-
 La lógica experimental se mantiene separada del flujo operacional para mejorar la mantenibilidad, reproducibilidad y eficiencia. Estos notebooks usados durante las pruebas del proyecto se encuentran en `notebooks_Fabric/experiments`
 
 ### `PowerBI/`
@@ -54,15 +53,17 @@ Contiene el fichero para Power BI, con las vistas utilizadas obtenidas de las ta
 
 ### `src/ai_model/`
 
-Código relacionado con los componentes de IA utilizados por la solución, especialmente la generación de resúmenes y la interpretación de grupos.
+Este código descarga el modelo para que posteriormente se pueda subir a nuestro Workspace en Microsoft Fabric.
 
 ### `src/batch_data_generator/`
 
-Código utilizado para generar o preparar los tickets procesados mediante el flujo batch.
+Aquí tenemos el código utilizado para generar nuestra fuente de datos simulada. Los datos se guardan en data como un fichero .csv
 
 ### `src/streaming_data_producer/`
 
-Productor de eventos utilizado para simular la llegada de tickets en tiempo cercano al real mediante Kafka / Confluent Cloud.
+Clases que simulan productores de eventos utilizados para simular la llegada de tickets en tiempo near-real mediante Kafka y Confluent Cloud. 
+* producer_confluent.py se utiliza para generar tickets de Streaming en Kafka dentro de Confluent Cloud.
+* producer.py se usó para hacer pruebas antes de utilizar Confluent y está conectado a nuestro servidor local de Kafka (usando Kafka UI) lanzado con Docker.
 
 ```text
 Ticket
